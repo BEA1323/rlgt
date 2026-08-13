@@ -30,6 +30,9 @@ from relbench.datasets import get_dataset
 from relbench.modeling.graph import make_pkey_fkey_graph
 from relbench.modeling.utils import get_stype_proposal
 from relbench.tasks import get_task
+from redelex import datasets as ctu_datasets
+from redelex import tasks as ctu_tasks
+# from redelex import
 
 # within this project
 from model import RelGT
