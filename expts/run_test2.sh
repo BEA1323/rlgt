@@ -12,8 +12,8 @@ check_array_lengths() {
 
 BASE_PORT=29130
 
-datasets=("ctu-accidents")
-tasks=("accidents-original")
+datasets=("rel-f1")
+tasks=("driver-position")
 dropouts_per=(0.3 0.3 0.5 0.5 0.5 0.3 0.3 0.5)
 bs_per=(1024 1024 256 256 256 256 256 256)
 max_steps_per=(500 500 3000 3000 3000 3000 3000 3000)
@@ -25,7 +25,7 @@ check_array_lengths "${datasets[@]}" "${bs_per[@]}"
 check_array_lengths "${datasets[@]}" "${max_steps_per[@]}"
 check_array_lengths "${datasets[@]}" "${epochs_per[@]}"
 
-ablate=("none")
+exp_global_per=("local" "full")
 
 # GPU IDs
 gpu_nodes=(0)
@@ -34,10 +34,10 @@ num_layers=(2)
 
 # Build the list of all experiment configurations
 expt_configs=()
-for exp_i in "${!ablate[@]}"; do
+for exp_i in "${!exp_global_per[@]}"; do
     for l in "${num_layers[@]}"; do
         for i in "${!datasets[@]}"; do
-            expt_configs+=("${ablate[$exp_i]}|${datasets[$i]}|${tasks[$i]}|${dropouts_per[$i]}|$l|${epochs_per[$i]}|${bs_per[$i]}|${max_steps_per[$i]}")
+            expt_configs+=("${exp_global_per[$exp_i]}|${datasets[$i]}|${tasks[$i]}|${dropouts_per[$i]}|$l|${epochs_per[$i]}|${bs_per[$i]}|${max_steps_per[$i]}")
         done
     done
 done
@@ -69,12 +69,10 @@ launch_experiment() {
     local port=$3
 
     # Parse config
-    IFS='|' read -r ablate dataset task dropout layers epochs batch_size max_steps_per_epoch <<< "$config"
+    IFS='|' read -r gt_conv_type dataset task dropout layers epochs batch_size max_steps_per_epoch <<< "$config"
     local dro="${dropout//./}"  # e.g. 0.3 -> 03
 
-    local gt_conv_type="global" # SWITCH TO "local" to turn off global
-
-    local run_name="relgt-ablate-${ablate}-l${layers}-512-dropout${dro}-BS${batch_size}-MAX${max_steps_per_epoch}"
+    local run_name="relgt-${gt_conv_type}-l${layers}-512-dropout${dro}-BS${batch_size}-MAX${max_steps_per_epoch}"
     local out_dir="results/${run_name}"
     mkdir -p "$out_dir"
 
@@ -95,11 +93,10 @@ launch_experiment() {
         --precompute \
         --seed 0 \
         --batch_size "${batch_size}" \
-        --num_neighbors 200 \
+        --num_neighbors 300 \
         --num_layers "${layers}" \
         --gt_conv_type "${gt_conv_type}" \
-        --ablate "${ablate}" \
-        --channels 256 \
+        --channels 512 \
         --max_steps_per_epoch "${max_steps_per_epoch}" \
         --num_workers 1 \
         --epochs "${epochs}" \

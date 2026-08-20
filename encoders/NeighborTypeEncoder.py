@@ -10,7 +10,7 @@ import torch_frame
 import torch_geometric.transforms as T
 from torch_geometric.data import Data
 
-class NeighborNodeTypeEncoder(nn.Module):
+class NeighborTypeEncoder(nn.Module):
     '''
     Encoder for neighbor types. (Will remain same as relgt)
     Uses an embedding layer to convert integer type indices into dense vectors.
@@ -21,7 +21,7 @@ class NeighborNodeTypeEncoder(nn.Module):
             node_type_map (dict): A mapping from node type strings to integer indices.
             embedding_dim (int): Dimension of the embedding vectors.(size will be reduced)
         '''
-        super(NeighborNodeTypeEncoder, self).__init__()
+        super(NeighborTypeEncoder, self).__init__()
         num_types = max(node_type_map.values()) + 1
         self.embedding=nn.Embedding(num_embeddings=num_types+1,embedding_dim=embedding_dim)
 

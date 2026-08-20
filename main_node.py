@@ -117,8 +117,14 @@ gpu_handle = init_gpu_utilization(local_rank)
 ############################
 # 3. Load dataset, task, and prepare data
 ############################
-dataset: Dataset = get_dataset(args.dataset, download=True)
-task: EntityTask = get_task(args.dataset, args.task, download=True)
+if args.dataset.startswith("ctu-"):
+    class_name = args.dataset[4:].capitalize()
+    dataset = getattr(ctu_datasets, class_name)()
+    task_class = "".join(x.capitalize() for x in args.task.split("-")) + "Task"
+    task = getattr(ctu_tasks, task_class)()
+else:
+    dataset: Dataset = get_dataset(args.dataset, download=True)
+    task: EntityTask = get_task(args.dataset, args.task, download=True)
 
 stypes_cache_path = Path(f"{args.cache_dir}/{args.dataset}/stypes.json")
 try:

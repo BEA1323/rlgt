@@ -8,7 +8,7 @@ import torch_geometric.transforms as T
 from torch_geometric.data import Data
 from torch_geometric.nn import GATConv
 
-class GATPEEncoder(nn.Module):
+class GNNGATEEncoder(nn.Module):
     """
     A GAT-based positional encoder that:
       1) Uses Laplacian PE when pe_dim > 0,

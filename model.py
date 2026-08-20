@@ -14,7 +14,7 @@ from local_module import LocalModule
 from torch_frame.data.stats import StatType
 from typing import Dict, Any, List
 
-from encoders import NeighborFeatureEncoder, NeighborHopEncoder, NeighborTimeEncoder, NeighborTypeEncoder, GNNPEEncoder , GNNGATEncoder
+from encoders import GNNGATEEncoder, NeighborHopEncoder, NeighborTfsEncoder, NeighborTimeEncoder, NeighborTypeEncoder, GNNPEEncoder
 
 class RelGTLayer(nn.Module):
     def __init__(
@@ -194,11 +194,11 @@ class RelGT(torch.nn.Module):
         self.type_encoder = NeighborTypeEncoder(embedding_dim=channels, node_type_map=self.node_type_map)
         self.hop_encoder = NeighborHopEncoder(embedding_dim=channels, max_neighbor_hop=self.max_neighbor_hop)
         self.time_encoder = NeighborTimeEncoder(embedding_dim=channels)
-        self.tfs_encoder = NeighborFeatureEncoder(channels=channels, node_type_map=self.node_type_map, col_names_dict=col_names_dict, col_stats_dict=col_stats_dict)
+        self.tfs_encoder = NeighborTfsEncoder(channels=channels, node_type_map=self.node_type_map, col_names_dict=col_names_dict, col_stats_dict=col_stats_dict)
         if self.pe_encoder == "GIN":
             self.pe_encoder = GNNPEEncoder(embedding_dim=channels, pe_dim = gnn_pe_dim)
         else:
-            self.pe_encoder = GNNGATEncoder(embedding_dim=channels, pe_dim = gnn_pe_dim)
+            self.pe_encoder = GNNGATEEncoder(embedding_dim=channels, pe_dim = gnn_pe_dim)
         self.layer_norm_type = nn.LayerNorm(channels)
         self.layer_norm_hop = nn.LayerNorm(channels)
         self.layer_norm_time = nn.LayerNorm(channels)
