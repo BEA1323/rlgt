@@ -32,6 +32,7 @@ from relbench.modeling.utils import get_stype_proposal
 from relbench.tasks import get_task
 from redelex import datasets as ctu_datasets
 from redelex import tasks as ctu_tasks
+from agg_features import precompute_agg_features
 # from redelex import
 
 # within this project
@@ -118,10 +119,8 @@ gpu_handle = init_gpu_utilization(local_rank)
 # 3. Load dataset, task, and prepare data
 ############################
 if args.dataset.startswith("ctu-"):
-    class_name = args.dataset[4:].capitalize()
-    dataset = getattr(ctu_datasets, class_name)()
-    task_class = "".join(x.capitalize() for x in args.task.split("-")) + "Task"
-    task = getattr(ctu_tasks, task_class)()
+    dataset: Dataset = get_dataset(args.dataset, download=False)
+    task: EntityTask = get_task(args.dataset, args.task, download=False)
 else:
     dataset: Dataset = get_dataset(args.dataset, download=True)
     task: EntityTask = get_task(args.dataset, args.task, download=True)
@@ -148,6 +147,24 @@ data, col_stats_dict = make_pkey_fkey_graph(
     cache_dir=f"{args.cache_dir}/{args.dataset}/materialized",
 )
 
+agg_cache_path = f"{args.cache_dir}/{args.dataset}/agg_features.h5"
+if not os.path.exists(agg_cache_path):
+    precompute_agg_features(
+        dataset=args.dataset,
+        db=dataset.get_db(),
+        max_depth=2,
+        out_path=agg_cache_path,
+    )
+'''
+agg_dims = {}
+with h5py.File(agg_cache_path, "r") as hf:
+    F_max = max(hf[t]["matrix"].shape[1] for t in data.node_types)
+    for node_type in data.node_types:
+        mat = torch.from_numpy(hf[node_type]["matrix"][:]).float()
+        agg_dims[node_type] = mat.shape[1]
+        data[node_type].agg_feat = torch.nn.functional.pad(mat, (0, F_max - mat.shape[1]))
+'''
+
 data = {
     split: RelGTTokens(
         data=data, 
@@ -157,10 +174,13 @@ data = {
         undirected=True, 
         precompute=args.precompute,
         precomputed_dir=f"{args.cache_dir}/precomputed/{args.dataset}/{args.task}",
+         agg_precomputed_path=agg_cache_path, ## new arg, aggregated precomputed path passed to __get_item__ h5 read
         num_workers=args.num_workers,
         train_stage=args.train_stage)
         for split in ["train", "val", "test"]
     }
+
+assert data["train"].agg_dims is not None, "agg_precomputed_path did not load — check agg_cache_path"  # <-- ADD
 
 ############################
 # 4. Create DataLoaders (with a DistributedSampler for training)
@@ -250,6 +270,8 @@ model = RelGT(
     gnn_pe_dim=args.gnn_pe_dim,
     num_centroids=args.num_centroids,
     sample_node_len=args.num_neighbors,
+    agg_dim_dict=data["train"].agg_dims,        # new added dict
+    feature_meta=data["train"].feature_meta,    # new added feature_meta dict
     args=args,
 ).to(device)
 
@@ -310,6 +332,15 @@ def train_supervised(epoch) -> float:
             'flat_batch_idx': batch['flat_batch_idx'],
             'flat_nbr_idx': batch['flat_nbr_idx']
         }
+
+        # new dict
+        agg_batch_dict = {
+            'grouped_agg': batch['grouped_agg'],
+            'grouped_indices': batch['grouped_indices'],
+            'flat_batch_idx': batch['flat_batch_idx'],
+            'flat_nbr_idx': batch['flat_nbr_idx']
+        }
+        # ---
         labels = batch["labels"].to(device)
 
         optimizer.zero_grad()
@@ -319,6 +350,7 @@ def train_supervised(epoch) -> float:
             neighbor_hops,
             neighbor_times,
             grouped_tf_dict,
+            agg_batch_dict,          # <-- add, matches forward's positional order
             edge_index=edge_index,
             batch=batch_vec
         )
@@ -371,12 +403,21 @@ def test(loader: DataLoader, eval_model, epoch, desc) -> np.ndarray:
             'flat_batch_idx': batch['flat_batch_idx'],
             'flat_nbr_idx': batch['flat_nbr_idx']
         }
+        # Same addition as above
+        agg_batch_dict = {
+            'grouped_agg': batch['grouped_agg'],
+            'grouped_indices': batch['grouped_indices'],
+            'flat_batch_idx': batch['flat_batch_idx'],
+            'flat_nbr_idx': batch['flat_nbr_idx']
+        }
+
         pred = eval_model(
             neighbor_types,
             node_indices,
             neighbor_hops,
             neighbor_times,
             grouped_tf_dict,
+            agg_batch_dict,  ## same addition as above
             edge_index=edge_index,
             batch=batch_vec
         )

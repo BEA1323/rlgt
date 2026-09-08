@@ -14,7 +14,7 @@ from local_module import LocalModule
 from torch_frame.data.stats import StatType
 from typing import Dict, Any, List
 
-from encoders import GNNGATEEncoder, NeighborHopEncoder, NeighborTfsEncoder, NeighborTimeEncoder, NeighborTypeEncoder, GNNPEEncoder
+from encoders import GNNGATEEncoder, NeighborHopEncoder, NeighborTfsEncoder, NeighborTimeEncoder, NeighborTypeEncoder, GNNPEEncoder,NeighborAggEncoder
 
 class RelGTLayer(nn.Module):
     def __init__(
@@ -32,7 +32,6 @@ class RelGTLayer(nn.Module):
         conv_type="local",
         num_centroids=None,
         sample_node_len=100,
-        pe_encoder=None,
         **kwargs,
     ):
         super(RelGTLayer, self).__init__()
@@ -182,6 +181,9 @@ class RelGT(torch.nn.Module):
         gnn_pe_dim : int = 0,
         num_centroids: int = 4096,
         sample_node_len: int = 100,
+        pe_encoder:str = "none",
+        agg_dim_dict: Dict[str, int] = None,      # {node_type: F_type}
+        feature_meta: Dict[str, Dict[str, torch.Tensor]] = None,  # {node_type: {"primitive_ids", "hop_ids", "col_ids"}}
         args: Any = None,
     ):
         super(RelGT, self).__init__()
@@ -190,6 +192,7 @@ class RelGT(torch.nn.Module):
         self.node_type_map = node_type_map
         num_node_types = len(node_type_map) + 1 # extra element for mask token
         num_hop_types = self.max_neighbor_hop + 1 # extra element for mask token
+        self.pe_encoder = pe_encoder
         
         self.type_encoder = NeighborTypeEncoder(embedding_dim=channels, node_type_map=self.node_type_map)
         self.hop_encoder = NeighborHopEncoder(embedding_dim=channels, max_neighbor_hop=self.max_neighbor_hop)
@@ -199,11 +202,13 @@ class RelGT(torch.nn.Module):
             self.pe_encoder = GNNPEEncoder(embedding_dim=channels, pe_dim = gnn_pe_dim)
         else:
             self.pe_encoder = GNNGATEEncoder(embedding_dim=channels, pe_dim = gnn_pe_dim)
+        self.agg_encoder = NeighborAggEncoder(channels=channels,node_type_map=self.node_type_map,agg_dim_dict=agg_dim_dict,feature_meta=feature_meta)
         self.layer_norm_type = nn.LayerNorm(channels)
         self.layer_norm_hop = nn.LayerNorm(channels)
         self.layer_norm_time = nn.LayerNorm(channels)
         self.layer_norm_tfs = nn.LayerNorm(channels)
         self.layer_norm_pe = nn.LayerNorm(channels)
+        self.layer_norm_agg = nn.LayerNorm(channels)   # new layer norm
         
         hidden_channels = channels
 
@@ -212,10 +217,12 @@ class RelGT(torch.nn.Module):
             "hop" : 1,
             "time" : 2,
             "tfs" : 3,
-            "gnn" : 4
+            "gnn" : 4,
+            "agg" : 5,      ## new ablation
         }
         self.ablate_idx = ablate_key_dict.get(ablate, None)
-        channel_mult = 5 if self.ablate_idx is None else 4
+        # channel_mult = 5 if self.ablate_idx is None else 4 
+        channel_mult = 6 if self.ablate_idx is None else 5 # channel mult increased one 
 
         self.in_mixture = nn.Sequential(
             nn.Linear(channel_mult*channels, 2*channels),
@@ -271,6 +278,7 @@ class RelGT(torch.nn.Module):
         self.time_encoder.reset_parameters()
         self.tfs_encoder.reset_parameters()
         self.pe_encoder.reset_parameters()
+        self.agg_encoder.reset_parameters() #new reset parameters
 
         for layer in self.in_mixture:
             if hasattr(layer, 'reset_parameters'):
@@ -290,6 +298,7 @@ class RelGT(torch.nn.Module):
                 neighbor_hops,
                 neighbor_times,
                 grouped_tf_dict,
+                agg_batch_dict,
                 edge_index=None,
                 batch=None,
                 ):
@@ -299,8 +308,9 @@ class RelGT(torch.nn.Module):
         neighbor_hops = self.layer_norm_hop(self.hop_encoder(neighbor_hops.long()))
         neighbor_times = self.layer_norm_time(self.time_encoder(neighbor_times.float()))
         neighbor_subgraph_pe = self.layer_norm_pe(self.pe_encoder(edge_index, batch))
+        neighbor_agg = self.layer_norm_agg(self.agg_encoder(agg_batch_dict, neighbor_types))   #  aggregation with dict
         
-        cat_list = [neighbor_types, neighbor_hops, neighbor_times, neighbor_tfs, neighbor_subgraph_pe]
+        cat_list = [neighbor_types, neighbor_hops, neighbor_times, neighbor_tfs, neighbor_subgraph_pe, neighbor_agg]
         if self.ablate_idx is not None:
             cat_list.pop(self.ablate_idx)
         x_set = torch.cat(cat_list, dim=-1)        

@@ -30,8 +30,8 @@ class NeighborTfsEncoder(nn.Module):
         col_stats_dict,
         torch_frame_model_cls=ResNet,
         torch_frame_model_kwargs: Dict[str, Any] = {
-            "channels": 128,
-            "num_layers": 4,
+            "channels": 64,
+            "num_layers": 2,
         },
         default_stype_encoder_cls_kwargs: Dict[torch_frame.stype, Any] = {
             torch_frame.categorical: (torch_frame.nn.EmbeddingEncoder, {}),
