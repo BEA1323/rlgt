@@ -13,7 +13,7 @@ dependencies = [
     "einops",
     "matplotlib",
     "progressbar",
-    "pandas",
+    "pandas==2.3.3",
     "numba",
     "networkx",
     "scikit-network",
@@ -31,6 +31,9 @@ dependencies = [
     "h5py",
     "nvidia-ml-py",
     "redelex",
+    "featuretools==1.31.0",
+    "numpy==2.4.3",
+    "setuptools==80.10.2
 ]
 
 [[tool.uv.index]]

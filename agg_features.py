@@ -67,7 +67,13 @@ def precompute_agg_features(dataset, db, max_depth=2, agg_primitives=None, out_p
             )
 
             grp = hf.create_group(table_name)
-            grp.create_dataset("matrix", data=fm.values.astype(np.float32))
+            numeric_cols = fm.select_dtypes(include=[np.number]).columns
+            fm_numeric = fm[numeric_cols]
+
+            grp.create_dataset(
+                "matrix",
+                data=fm_numeric.to_numpy(dtype=np.float32),
+            )
             grp.create_dataset("feature_names", data=np.array([str(f) for f in feature_defs], dtype="S"))
 
     return out_path
