@@ -603,15 +603,15 @@ class RelGTTokens(Dataset):
             grouped_agg[t_id]= self.agg_features[type_str][local_idxs] #insert here
 
             ## Debug dimensions
-            
+
             print("DEBUG AGG:",type_str,self.agg_features[type_str].shape,local_idxs.shape,grouped_agg[t_id].shape) ## debug dimensions
             print(
-            f"{type_str:15s} | "
-            f"TF={grouped_tfs[t_id].shape} | "
-            f"AGG={grouped_agg[t_id].shape} | "
-            f"POS={len(grouped_positions[t_id])} | "
-            f"IDX={local_idxs.shape}"
-        )
+                f"{type_str:15s} | "
+                f"TF type={type(grouped_tfs[t_id]).__name__} | "
+                f"AGG={grouped_agg[t_id].shape} | "
+                f"POS={len(grouped_positions[t_id])} | "
+                f"IDX={local_idxs.shape}"
+            )
 
         flat_batch_idx = torch.arange(B).unsqueeze(1).expand(B, K).reshape(-1).tolist()
         flat_nbr_idx = torch.arange(K).repeat(B).tolist()
