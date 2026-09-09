@@ -403,7 +403,7 @@ print("\nChecking aggregation dimensions...")
 
 for node_type, agg in batch["grouped_agg"].items():
 
-    actual_dim = agg.shape[1]
+    actual_dim = agg.shape[-1]
 
     expected_dim = model.agg_encoder.agg_dim_dict[
         node_type
