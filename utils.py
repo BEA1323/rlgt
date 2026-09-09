@@ -600,7 +600,9 @@ class RelGTTokens(Dataset):
 
             grouped_tfs[t_id] = self.data[type_str].tf[local_idxs]
             grouped_positions[t_id] = offsets_list
-            grouped_agg[t_id]= self.agg_features[type_str][local_idxs]
+            grouped_agg[t_id]= self.agg_features[type_str][local_idxs] #insert here
+
+            print("DEBUG AGG:",type_str,self.agg_features[type_str].shape,local_idxs.shape,grouped_agg[t_id].shape) ## debug dimensions
 
         flat_batch_idx = torch.arange(B).unsqueeze(1).expand(B, K).reshape(-1).tolist()
         flat_nbr_idx = torch.arange(K).repeat(B).tolist()
