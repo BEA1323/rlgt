@@ -403,29 +403,28 @@ print("\nChecking aggregation dimensions...")
 
 for node_type, agg in batch["grouped_agg"].items():
 
+    type_str = data["train"].index_to_node_type[node_type]
+
     actual_dim = agg.shape[-1]
 
-    expected_dim = model.agg_encoder.agg_dim_dict[
-        node_type
-    ]
+    expected_dim = model.agg_encoder.agg_dim_dict[type_str]
 
     print(
-        f"  {node_type}: "
+        f"  {type_str}: "
         f"{tuple(agg.shape)} "
         f"(actual={actual_dim}, expected={expected_dim})"
     )
 
     assert actual_dim == expected_dim, (
         f"AGG DIMENSION MISMATCH: "
-        f"{node_type}: "
+        f"{type_str}: "
         f"{actual_dim} != {expected_dim}"
     )
 
     if torch.is_tensor(agg):
-
         assert torch.isfinite(agg).all(), (
             f"NaN/Inf in aggregation features: "
-            f"{node_type}"
+            f"{type_str}"
         )
 
 print("✓ Aggregation dimensions and values OK")
