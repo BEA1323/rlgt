@@ -403,7 +403,7 @@ print("\nChecking aggregation dimensions...")
 
 for node_type, agg in batch["grouped_agg"].items():
 
-    type_str = data["train"].index_to_node_type[node_type]
+    type_str = train_data.index_to_node_type[node_type]
 
     actual_dim = agg.shape[-1]
 
