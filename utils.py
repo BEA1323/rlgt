@@ -331,13 +331,15 @@ class RelGTTokens(Dataset):
         self.agg_precomputed_path = agg_precomputed_path
         self.agg_dims = None
         self.feature_meta = None
+        self.agg_features = None
         if self.agg_precomputed_path is not None:
             with h5py.File(self.agg_precomputed_path, 'r') as agg_hf:
                 self.agg_dims = {nt: agg_hf[nt]["matrix"].shape[1] for nt in agg_hf.keys()}
-                self.feature_meta = {
-                    nt: parse_feature_names(agg_hf[nt]["feature_names"][:])
-                    for nt in agg_hf.keys()
-                }
+                self.feature_meta = {nt: parse_feature_names(agg_hf[nt]["feature_names"][:])
+                    for nt in agg_hf.keys()}
+                self.agg_features = {nt: agg_hf[nt]["matrix"][:]
+                    for nt in agg_hf.keys()}
+
         # --- end  ---
 
         if self.precompute:
@@ -352,6 +354,8 @@ class RelGTTokens(Dataset):
                 raise FileNotFoundError(
                     f"agg_precomputed_path is missing or incomplete: {self.agg_precomputed_path}"
                 )
+            else:
+                print(f"[{self.split}] Precomputing aggregations")
             
 
     def _create_global_mappings(self):
@@ -576,6 +580,7 @@ class RelGTTokens(Dataset):
         B, K = neighbor_types.shape
         grouped_tfs = {}
         grouped_positions = {}
+        grouped_agg={} #new aggregation dict
         for t_id in range(len(self.node_types)):
             # For each possible type, find which neighbors are that type
             mask = (neighbor_types == t_id)
@@ -595,6 +600,7 @@ class RelGTTokens(Dataset):
 
             grouped_tfs[t_id] = self.data[type_str].tf[local_idxs]
             grouped_positions[t_id] = offsets_list
+            grouped_agg[t_id]= self.agg_features[type_str][local_idxs]
 
         flat_batch_idx = torch.arange(B).unsqueeze(1).expand(B, K).reshape(-1).tolist()
         flat_nbr_idx = torch.arange(K).repeat(B).tolist()
@@ -605,6 +611,7 @@ class RelGTTokens(Dataset):
         out.update({
             "grouped_tfs": grouped_tfs,
             "grouped_indices": grouped_positions,
+            "grouped_agg": grouped_agg,
             "flat_batch_idx": flat_batch_idx,
             "flat_nbr_idx": flat_nbr_idx,
             "global_idx": global_idxs,

@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import h5py
 import torch
-
+import re
 
 def build_entityset(dataset, db):
     es = ft.EntitySet(id=dataset)
@@ -70,16 +70,17 @@ def precompute_agg_features(dataset, db, max_depth=2, agg_primitives=None, out_p
             numeric_cols = fm.select_dtypes(include=[np.number]).columns
             fm_numeric = fm[numeric_cols]
 
-            grp.create_dataset(
-                "matrix",
-                data=fm_numeric.to_numpy(dtype=np.float32),
-            )
-            grp.create_dataset("feature_names", data=np.array([str(f) for f in feature_defs], dtype="S"))
+            # Keep feature_defs aligned with the numeric columns
+            numeric_feature_defs = [feature_defs[i] for i, col in enumerate(fm.columns)
+                if col in numeric_cols]
+
+            grp.create_dataset("matrix",data=fm_numeric.to_numpy(dtype=np.float32),)
+
+            grp.create_dataset("feature_names",data=np.array([str(f) for f in numeric_feature_defs],dtype="S"),)
 
     return out_path
 
 
-import re
 
 PRIMITIVE_VOCAB = {"COUNT": 0, "SUM": 1, "MEAN": 2, "MAX": 3, "MIN": 4}
 
