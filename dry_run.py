@@ -34,7 +34,7 @@ TASK = "driver-top3"
 
 BATCH_SIZE = 1
 NUM_NEIGHBORS = 300
-NUM_WORKERS = 0
+NUM_WORKERS = 1
 SEED = 42
 
 CACHE_DIR = os.path.expanduser("~/.cache/relbench_examples")

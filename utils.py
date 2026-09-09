@@ -346,6 +346,13 @@ class RelGTTokens(Dataset):
             else:
                 print(f"[{self.split}] Precomputing neighbor sampling (K={self.K})...")
                 self._precompute_sampling()
+        # Check the validity of aggregated samples
+        if self.agg_precomputed_path is not None:
+            if not self._agg_file_is_valid(self.agg_precomputed_path, self.node_types):
+                raise FileNotFoundError(
+                    f"agg_precomputed_path is missing or incomplete: {self.agg_precomputed_path}"
+                )
+            
 
     def _create_global_mappings(self):
         """
@@ -721,3 +728,14 @@ class RelGTTokens(Dataset):
 
         return agg_features, agg_dims, feature_meta
 '''
+    def _agg_file_is_valid(self, path, expected_node_types):
+        if not os.path.exists(path):
+            return False
+        try:
+            with h5py.File(path, 'r') as hf:
+                for nt in expected_node_types:
+                    if nt not in hf or "matrix" not in hf[nt] or "feature_names" not in hf[nt]:
+                        return False
+            return True
+        except OSError:
+            return False
