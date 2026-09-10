@@ -304,11 +304,12 @@ class RelGT(torch.nn.Module):
                 ):
         
         neighbor_tfs = self.layer_norm_tfs(self.tfs_encoder(grouped_tf_dict, neighbor_types))
+        neighbor_agg = self.layer_norm_agg(self.agg_encoder(agg_batch_dict, neighbor_types))   #  aggregation with dict
         neighbor_types = self.layer_norm_type(self.type_encoder(neighbor_types.long()))
         neighbor_hops = self.layer_norm_hop(self.hop_encoder(neighbor_hops.long()))
         neighbor_times = self.layer_norm_time(self.time_encoder(neighbor_times.float()))
         neighbor_subgraph_pe = self.layer_norm_pe(self.pe_encoder(edge_index, batch))
-        neighbor_agg = self.layer_norm_agg(self.agg_encoder(agg_batch_dict, neighbor_types))   #  aggregation with dict
+        
         
         cat_list = [neighbor_types, neighbor_hops, neighbor_times, neighbor_tfs, neighbor_subgraph_pe, neighbor_agg]
         if self.ablate_idx is not None:
