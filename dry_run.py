@@ -32,7 +32,7 @@ from utils import GloveTextEmbedding, RelGTTokens
 DATASET = "rel-f1"
 TASK = "driver-top3"
 
-BATCH_SIZE = 1
+BATCH_SIZE = 4
 NUM_NEIGHBORS = 300
 NUM_WORKERS = 1
 SEED = 42
