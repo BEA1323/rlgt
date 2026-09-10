@@ -333,13 +333,17 @@ class RelGTTokens(Dataset):
         self.feature_meta = None
         self.agg_features = None
         if self.agg_precomputed_path is not None:
+            if not self._agg_file_is_valid(self.agg_precomputed_path, self.node_types):
+                raise FileNotFoundError(
+                    f"agg_precomputed_path is missing or incomplete: {self.agg_precomputed_path}"
+                )
             with h5py.File(self.agg_precomputed_path, 'r') as agg_hf:
                 self.agg_dims = {nt: agg_hf[nt]["matrix"].shape[1] for nt in agg_hf.keys()}
-                self.feature_meta = {nt: parse_feature_names(agg_hf[nt]["feature_names"][:])
-                    for nt in agg_hf.keys()}
-                self.agg_features = {nt: agg_hf[nt]["matrix"][:]
-                    for nt in agg_hf.keys()}
-
+                self.feature_meta = {
+                    nt: parse_feature_names(agg_hf[nt]["feature_names"][:])
+                    for nt in agg_hf.keys()
+                }
+            self.agg_features = self._load_agg_features()   #  populate self.agg_features
         # --- end  ---
 
         if self.precompute:
@@ -757,3 +761,16 @@ class RelGTTokens(Dataset):
             return True
         except OSError:
             return False
+
+    def _load_agg_features(self):
+        """
+        Load the full precomputed featuretools matrix per node type into memory,
+        once, as torch Tensors — so collate() never touches the h5 file or does
+        a numpy->tensor cast per batch.
+        """
+        agg_features = {}
+        with h5py.File(self.agg_precomputed_path, 'r') as agg_hf:
+            for node_type in self.node_types:
+                mat = agg_hf[node_type]["matrix"][:]   # numpy array, [num_nodes_of_type, F_type]
+                agg_features[node_type] = torch.from_numpy(mat).float()
+        return agg_features
