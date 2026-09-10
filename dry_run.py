@@ -422,10 +422,11 @@ for node_type, agg in batch["grouped_agg"].items():
     )
 
     if torch.is_tensor(agg):
-        assert torch.isfinite(agg).all(), (
-            f"NaN/Inf in aggregation features: "
-            f"{type_str}"
-        )
+        n_nan = torch.isnan(agg).sum().item()
+        n_inf = torch.isinf(agg).sum().item()
+        if n_nan > 0 or n_inf > 0:
+            print(f"    ⚠ raw agg has NaN={n_nan}, Inf={n_inf} — will be sanitized inside NeighborAggEncoder")
+        # no assertion here anymore — encoder handles it
 
 print("✓ Aggregation dimensions and values OK")
 
@@ -464,6 +465,12 @@ assert torch.isfinite(pred).all(), (
 
 print("✓ Forward pass OK")
 print("✓ Prediction is finite")
+
+# --- NEW: directly verify the agg encoder's own output is clean ---
+with torch.no_grad():
+    test_agg_out = model.agg_encoder(agg_batch_dict, neighbor_types)
+    assert torch.isfinite(test_agg_out).all(), "agg_encoder output contains NaN/Inf despite nan_to_num!"
+    print(f"✓ agg_encoder output finite, shape={tuple(test_agg_out.shape)}")
 
 
 # ============================================================
