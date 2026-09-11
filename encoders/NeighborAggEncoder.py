@@ -91,7 +91,7 @@ class NeighborAggEncoder(nn.Module):
                 v
                 + self.primitive_emb(getattr(self, f"primitive_ids_{node_type_str}"))
                 + self.hop_emb(getattr(self, f"hop_ids_{node_type_str}"))
-                + self.col_emb(getattr(self, f"col_ids_{node_type_str}"))
+                + self.col_emb(getattr(self, f"col_ids_{node_type_str}")) #Be careful here think about it
                 # to do +self.path_emb  beacuse we want to discriminate the paths
             )
             out_t = self.pool_norm(tok.sum(dim=1))  # [N_t, channels]
