@@ -2,25 +2,26 @@
 set -e  # exit immediately on any error
 
 ############################
-# Config — edit as needed
+# Config 
 ############################
-DATASET="rel-f1"
-TASK="driver-top3"
 
 GPU_ID=0
 PORT=29130
 
-BATCH_SIZE=64
+
+DATASET=("rel-f1")
+TASK=("driver-position")
+FF_DROPOUT=(0.2 0.3 0.5 0.2 0.3 0.5 0.3 0.5 )
+BATCH_SIZE=(128 128 128 64 64 64 32 32)
+MAX_STEPS_PER_EPOCH=(10 10 10 10 10 10 10 10 10)
+EPOCHS=(10 10 10 10 10 10 10 10 10)
+ATTN_DROPOUT=(0.2 0.3 0.5 0.2 0.3 0.5 0.3 0.5 )
 NUM_NEIGHBORS=100
 NUM_LAYERS=1
 CHANNELS=64
 GT_CONV_TYPE="full"
 
-EPOCHS=10
-MAX_STEPS_PER_EPOCH=300
 LR=0.0001
-FF_DROPOUT=0.3
-ATTN_DROPOUT=0.3
 NUM_WORKERS=1
 SEED=0
 
