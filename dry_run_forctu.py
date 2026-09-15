@@ -29,8 +29,8 @@ from utils import GloveTextEmbedding, RelGTTokens
 # CONFIG
 # ============================================================
 
-DATASET="ctu-classicmodels"
-TASK="classicmodels-original"
+DATASET="ctu-thrombosis"
+TASK="thrombosis-original"
 
 BATCH_SIZE = 4
 NUM_NEIGHBORS = 300
