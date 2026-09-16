@@ -30,12 +30,12 @@ SEED=0
 # Experiment sweep
 ############################
 
-FF_DROPOUT=0.2
-ATTN_DROPOUT=0.2
-BATCH_SIZE=512
+FF_DROPOUT=(0.2)
+ATTN_DROPOUT=(0.2)
+BATCH_SIZE=(512)
 
-MAX_STEPS_PER_EPOCH=100
-EPOCHS=100
+MAX_STEPS_PER_EPOCH=(100)
+EPOCHS=(100)
 
 ############################
 # Check array lengths
