@@ -1,4 +1,3 @@
-```bash
 #!/usr/bin/env bash
 set -e
 
@@ -54,9 +53,9 @@ MAX_STEPS_PER_EPOCH=(
 )
 
 EPOCHS=(
-    100
-    100
-    100
+    10
+    10
+    10
 )
 
 
@@ -131,4 +130,4 @@ echo ""
 echo "===================================="
 echo "All ${NUM_EXPERIMENTS} experiments finished."
 echo "===================================="
-```
+
