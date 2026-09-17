@@ -182,6 +182,7 @@ class RelGT(torch.nn.Module):
         gnn_pe_dim : int = 0,
         num_centroids: int = 4096,
         sample_node_len: int = 100,
+        pe_encoder: str = 'none',
         args: Any = None,
     ):
         super(RelGT, self).__init__()
