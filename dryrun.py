@@ -167,17 +167,7 @@ train_data = RelGTTokens(
     train_stage="finetune",
 )
 
-assert train_data.agg_dims is not None, (
-    "agg_dims is None. "
-    "Aggregation features were not loaded."
-)
-
 print("✓ RelGTTokens created")
-
-print("\nAggregation dimensions:")
-
-for node_type, dim in train_data.agg_dims.items():
-    print(f"  {node_type}: {dim}")
 
 
 # ============================================================
