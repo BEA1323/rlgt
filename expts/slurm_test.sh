@@ -1,4 +1,3 @@
-```bash
 #!/usr/bin/env bash
 set -e
 
@@ -203,4 +202,4 @@ echo ""
 echo "=========================================="
 echo "All ${NUM_EXPERIMENTS} experiments finished."
 echo "=========================================="
-```
+
