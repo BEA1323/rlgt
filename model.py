@@ -190,6 +190,7 @@ class RelGT(torch.nn.Module):
         self.node_type_map = node_type_map
         num_node_types = len(node_type_map) + 1 # extra element for mask token
         num_hop_types = self.max_neighbor_hop + 1 # extra element for mask token
+        self.pe_encoder=self.pe_encoder
         
         self.type_encoder = NeighborTypeEncoder(embedding_dim=channels, node_type_map=self.node_type_map)
         self.hop_encoder = NeighborHopEncoder(embedding_dim=channels, max_neighbor_hop=self.max_neighbor_hop)
