@@ -282,8 +282,6 @@ model = RelGT(
 
     sample_node_len=args.num_neighbors,
 
-    agg_dim_dict=train_data.agg_dims,
-
     feature_meta=train_data.feature_meta,
 
     args=args,
@@ -341,13 +339,6 @@ grouped_tf_dict = {
     "flat_nbr_idx": batch["flat_nbr_idx"],
 }
 
-agg_batch_dict = {
-    "grouped_agg": batch["grouped_agg"],
-    "grouped_indices": batch["grouped_indices"],
-    "flat_batch_idx": batch["flat_batch_idx"],
-    "flat_nbr_idx": batch["flat_nbr_idx"],
-}
-
 
 # ============================================================
 # CHECK AGG DIMENSIONS
@@ -355,34 +346,6 @@ agg_batch_dict = {
 
 print("\nChecking aggregation dimensions...")
 
-for node_type, agg in batch["grouped_agg"].items():
-
-    type_str = train_data.index_to_node_type[node_type]
-
-    actual_dim = agg.shape[-1]
-
-    expected_dim = model.agg_encoder.agg_dim_dict[type_str]
-
-    print(
-        f"  {type_str}: "
-        f"{tuple(agg.shape)} "
-        f"(actual={actual_dim}, expected={expected_dim})"
-    )
-
-    assert actual_dim == expected_dim, (
-        f"AGG DIMENSION MISMATCH: "
-        f"{type_str}: "
-        f"{actual_dim} != {expected_dim}"
-    )
-
-    if torch.is_tensor(agg):
-        n_nan = torch.isnan(agg).sum().item()
-        n_inf = torch.isinf(agg).sum().item()
-        if n_nan > 0 or n_inf > 0:
-            print(f"    ⚠ raw agg has NaN={n_nan}, Inf={n_inf} — will be sanitized inside NeighborAggEncoder")
-        # no assertion here anymore — encoder handles it
-
-print("✓ Aggregation dimensions and values OK")
 
 
 # ============================================================
@@ -406,7 +369,6 @@ pred = model(
     neighbor_hops,
     neighbor_times,
     grouped_tf_dict,
-    agg_batch_dict,
     edge_index=edge_index,
     batch=batch_vec,
 )
@@ -421,15 +383,6 @@ print("✓ Forward pass OK")
 print("✓ Prediction is finite")
 
 # --- NEW: directly verify the agg encoder's own output is clean ---
-with torch.no_grad():
-    test_agg_out = model.agg_encoder(agg_batch_dict, neighbor_types)
-    assert torch.isfinite(test_agg_out).all(), "agg_encoder output contains NaN/Inf despite nan_to_num!"
-    print(f"✓ agg_encoder output finite, shape={tuple(test_agg_out.shape)}")
-
-
-# ============================================================
-# LOSS
-# ============================================================
 
 pred_for_loss = (
     pred.view(-1)
