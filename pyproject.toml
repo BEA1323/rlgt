@@ -1,0 +1,45 @@
+[project]
+name = "rlgt"
+version = "0.1.2"
+requires-python = ">=3.12"
+dependencies = [
+    "torch==2.8.0",
+    "torchvision==0.23.0",
+    "torchaudio==2.8.0",
+    "torch-geometric",
+    "wandb",
+    "absl-py",
+    "tensorboard",
+    "einops",
+    "matplotlib",
+    "progressbar",
+    "pandas==2.3.3",
+    "numba",
+    "networkx",
+    "scikit-network",
+    "ipykernel",
+    "tqdm",
+    "kmeans-pytorch",
+    "torchviz",
+    "fastcluster",
+    "opentsne",
+    "ogb",
+    "kmedoids",
+    "relbench",
+    "pytorch-frame[full]",
+    "sentence-transformers",
+    "h5py",
+    "nvidia-ml-py",
+    "redelex",
+    "numpy==2.4.3"
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+torchaudio = { index = "pytorch-cu128" }
