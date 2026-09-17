@@ -282,7 +282,6 @@ model = RelGT(
 
     sample_node_len=args.num_neighbors,
 
-    feature_meta=train_data.feature_meta,
 
     args=args,
 ).to(DEVICE)
