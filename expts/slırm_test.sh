@@ -24,8 +24,6 @@ SEED=0
 # ============================================================
 # Experiment parameters
 #
-# Add/remove values here.
-# All arrays must have the SAME length.
 # ============================================================
 
 FF_DROPOUT=(
@@ -53,9 +51,9 @@ MAX_STEPS_PER_EPOCH=(
 )
 
 EPOCHS=(
-    10
-    10
-    10
+    100
+    100
+    100
 )
 
 
