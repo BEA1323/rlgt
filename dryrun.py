@@ -20,7 +20,6 @@ from relbench.tasks import get_task
 from redelex import datasets as ctu_datasets
 from redelex import tasks as ctu_tasks
 
-from agg_features import precompute_agg_features
 from model import RelGT
 from utils import GloveTextEmbedding, RelGTTokens
 
