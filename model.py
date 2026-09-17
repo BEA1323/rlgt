@@ -182,7 +182,6 @@ class RelGT(torch.nn.Module):
         gnn_pe_dim : int = 0,
         num_centroids: int = 4096,
         sample_node_len: int = 100,
-        pe_encoder: str = 'none',
         args: Any = None,
     ):
         super(RelGT, self).__init__()
@@ -197,10 +196,8 @@ class RelGT(torch.nn.Module):
         self.hop_encoder = NeighborHopEncoder(embedding_dim=channels, max_neighbor_hop=self.max_neighbor_hop)
         self.time_encoder = NeighborTimeEncoder(embedding_dim=channels)
         self.tfs_encoder = NeighborTfsEncoder(channels=channels, node_type_map=self.node_type_map, col_names_dict=col_names_dict, col_stats_dict=col_stats_dict)
-        if self.pe_encoder == "GIN":
-            self.pe_encoder = GNNPEEncoder(embedding_dim=channels, pe_dim = gnn_pe_dim)
-        else:
-            self.pe_encoder = GNNGATEEncoder(embedding_dim=channels, pe_dim = gnn_pe_dim)
+        self.pe_encoder = GNNPEEncoder(embedding_dim=channels, pe_dim = gnn_pe_dim)
+        
         self.layer_norm_type = nn.LayerNorm(channels)
         self.layer_norm_hop = nn.LayerNorm(channels)
         self.layer_norm_time = nn.LayerNorm(channels)
