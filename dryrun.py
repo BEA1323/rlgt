@@ -282,7 +282,6 @@ model = RelGT(
 
     sample_node_len=args.num_neighbors,
 
-
     args=args,
 ).to(DEVICE)
 
