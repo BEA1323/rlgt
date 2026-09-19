@@ -38,7 +38,7 @@ from redelex import tasks as ctu_tasks
 from model import RelGT
 from utils import GloveTextEmbedding, RelGTTokens
 
-torch.autograd.set_detect_anomaly(True)
+# torch.autograd.set_detect_anomaly(True) ## closed for reproduction of the expt.
 
 ############################
 # 1. Parse arguments
