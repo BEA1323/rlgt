@@ -39,7 +39,7 @@ from agg_features import precompute_agg_features
 from model import RelGT
 from utils import GloveTextEmbedding, RelGTTokens
 
-torch.autograd.set_detect_anomaly(True)
+# torch.autograd.set_detect_anomaly(True) ## closed for reproduction of expt.
 
 ############################
 # 1. Parse arguments
